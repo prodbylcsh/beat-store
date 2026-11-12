@@ -1,0 +1,12 @@
+# Zkopíruj jako .dev.vars (nikdy necommituj). V produkci nastav přes `wrangler secret put`.
+ADMIN_PASSWORD=zmen-me-dlouhe-heslo
+SESSION_SECRET=nahodny-retezec-aspon-32-znaku
+# Bez těchto dvou běží lokálně "simulovaný checkout" (jen APP_ENV=development):
+LEMONSQUEEZY_API_KEY=
+LEMONSQUEEZY_WEBHOOK_SECRET=
+# Volitelné: Discord/Slack-kompatibilní webhook pro upozornění na nové objednávky a poptávky
+NOTIFY_WEBHOOK_URL=
+
+# Lokálně přepíše hodnoty z wrangler.jsonc:
+APP_ENV=development
+APP_ORIGIN=http://localhost:8787

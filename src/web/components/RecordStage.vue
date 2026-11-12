@@ -1,0 +1,100 @@
+<script setup lang="ts">
+import { onMounted, onUnmounted, ref } from 'vue';
+import { GrooveRenderer, lookFor } from '../lib/groove';
+import { meter, player, tick } from '../lib/player';
+import { activeSlot, stage, stageBeat } from '../lib/stage';
+import { beats } from '../lib/store';
+import type { Beat } from '../../shared/types';
+
+const canvas = ref<HTMLCanvasElement | null>(null);
+let renderer: GrooveRenderer | null = null;
+let raf = 0;
+
+// plynulý stav desky
+const cur = { cx: 0, cy: 0, size: 0, tilt: 0, alpha: 0, live: 0, init: false };
+let spin = 0;
+let speed = 0.25;
+let shown: Beat | null = null;   // beat ve slotu A
+let incoming: Beat | null = null; // beat ve slotu B (prolínání)
+let mix = 0;
+let last = performance.now();
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function frame(now: number) {
+  raf = requestAnimationFrame(frame);
+  const r = renderer;
+  if (!r) return;
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  tick();
+
+  const slot = activeSlot();
+  const want = slot ? slot.beat() ?? player.current ?? beats.value[0] ?? null : null;
+  stage.activePriority = slot ? slot.priority : -1;
+  if (stageBeat.value !== want) stageBeat.value = want;
+
+  // prolnutí na jiný beat
+  if (want && !shown) { shown = want; r.setLook(0, lookFor(want)); r.setLook(1, lookFor(want)); }
+  else if (want && want.id !== shown?.id && want.id !== incoming?.id) {
+    if (incoming) { shown = incoming; r.setLook(0, lookFor(shown)); }
+    incoming = want; mix = 0; r.setLook(1, lookFor(want));
+    speed += 9; // deska se při výměně roztočí
+  }
+  if (incoming) {
+    mix = Math.min(1, mix + dt / 0.55);
+    if (mix >= 1) { shown = incoming; incoming = null; mix = 0; r.setLook(0, lookFor(shown)); }
+  }
+
+  const w = window.innerWidth, h = window.innerHeight;
+  r.resize(w, h, Math.min(2, window.devicePixelRatio || 1));
+  r.clear();
+
+  const k = reduce ? 1 : 1 - Math.exp(-dt * 9);
+  let targetAlpha = 0;
+  if (slot && want) {
+    const b = slot.el.getBoundingClientRect();
+    const size = Math.min(b.width, b.height);
+    const tx = b.left + b.width / 2, ty = b.top + b.height / 2;
+    if (!cur.init) { cur.cx = tx; cur.cy = ty; cur.size = size; cur.tilt = slot.tilt; cur.init = true; }
+    cur.cx += (tx - cur.cx) * k; cur.cy += (ty - cur.cy) * k;
+    cur.size += (size - cur.size) * k; cur.tilt += (slot.tilt - cur.tilt) * k;
+    targetAlpha = 1;
+  }
+  cur.alpha += (targetAlpha - cur.alpha) * (reduce ? 1 : 1 - Math.exp(-dt * 12));
+  cur.live += ((player.playing ? 1 : 0) - cur.live) * (1 - Math.exp(-dt * 4));
+
+  const display = incoming ?? shown;
+  const isCurrent = !!display && display.id === player.current?.id;
+  const targetSpeed = stage.dragging ? 0 : isCurrent && player.playing ? 3.49 : 0.22; // 33⅓ ot./min
+  speed += (targetSpeed - speed) * (1 - Math.exp(-dt * 3.2));
+  if (!reduce || isCurrent) spin += speed * dt;
+
+  if (cur.alpha < 0.004 || !display || cur.size < 4) return;
+  if (cur.cx < -cur.size || cur.cx > w + cur.size || cur.cy < -cur.size || cur.cy > h + cur.size) return;
+  r.draw({
+    cx: cur.cx, cy: cur.cy, size: cur.size, tilt: cur.tilt,
+    spin: -(spin + stage.spinOffset),
+    progress: isCurrent ? meter.progress : -1,
+    level: isCurrent ? meter.bass : 0,
+    alpha: cur.alpha, live: cur.live, flat: cur.size < 90, mix: incoming ? mix : 0,
+  });
+}
+
+onMounted(() => {
+  try {
+    renderer = new GrooveRenderer(canvas.value!);
+    raf = requestAnimationFrame(frame);
+  } catch {
+    stage.available = false;
+  }
+});
+onUnmounted(() => cancelAnimationFrame(raf));
+</script>
+
+<template>
+  <canvas ref="canvas" class="stage" aria-hidden="true" />
+</template>
+
+<style scoped>
+.stage { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; z-index: 45; pointer-events: none; }
+</style>

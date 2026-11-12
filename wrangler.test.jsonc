@@ -1,0 +1,33 @@
+// TEST (veřejné testovací prostředí, Lemon Squeezy Test mode).
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "beat-store-test",
+  "main": "./src/worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/media/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "beat-store-test-db",
+      "database_id": "SEM_DOPLN_UUID_TEST_DB",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "beat-store-test-private" }],
+  "vars": {
+    "APP_ENV": "test",
+    "APP_ORIGIN": "https://beat-store-test.SEM_DOPLN.workers.dev",
+    "CURRENCY": "CZK",
+    "LEMON_STORE_ID": "",
+    "LEMON_VARIANT_WAV": "",
+    "LEMON_VARIANT_STEMS": "",
+    "LEMON_VARIANT_EXCLUSIVE": "",
+    "LEMON_VARIANT_SERVICE": ""
+  }
+}

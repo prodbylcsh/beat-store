@@ -1,0 +1,33 @@
+// PRODUKCE. Hodnoty označené SEM_DOPLN nahraď podle docs/NAVOD.md.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "beat-store",
+  "main": "./src/worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/media/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "beat-store-prod-db",
+      "database_id": "SEM_DOPLN_UUID_PROD_DB",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "beat-store-prod-private" }],
+  "vars": {
+    "APP_ENV": "production",
+    "APP_ORIGIN": "https://beat-store.SEM_DOPLN.workers.dev",
+    "CURRENCY": "CZK",
+    "LEMON_STORE_ID": "",
+    "LEMON_VARIANT_WAV": "",
+    "LEMON_VARIANT_STEMS": "",
+    "LEMON_VARIANT_EXCLUSIVE": "",
+    "LEMON_VARIANT_SERVICE": ""
+  }
+}
