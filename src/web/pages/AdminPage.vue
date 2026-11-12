@@ -22,7 +22,10 @@ const money = (v: number | null) => (v == null ? '—' : formatMoney(v, currency
 async function check() {
   const r = await api<{ admin: boolean; configured: boolean }>('/api/admin/me');
   authed.value = r.admin; configured.value = r.configured;
-  if (r.admin) await refresh();
+  if (r.admin) {
+    await refresh();
+    hasTag.value = (await fetch('/api/admin/tag', { credentials: 'same-origin' }).catch(() => null))?.ok ?? false;
+  }
 }
 async function login() {
   loginError.value = '';
@@ -176,7 +179,6 @@ async function pickTag(e: Event) {
   hasTag.value = true;
 }
 async function removeTag() { await api('/api/admin/tag', { method: 'DELETE', admin: true }); hasTag.value = false; }
-onMounted(async () => { hasTag.value = (await fetch('/api/admin/tag', { credentials: 'same-origin' }).catch(() => null))?.ok ?? false; });
 async function setService(id: string, status: string) { await api(`/api/admin/services/${id}`, { method: 'PATCH', admin: true, json: { status } }); await refresh(); }
 const date = (s: string) => new Date(s.includes('T') ? s : `${s.replace(' ', 'T')}Z`).toLocaleString('cs-CZ', { dateStyle: 'short', timeStyle: 'short' });
 </script>
@@ -219,7 +221,9 @@ const date = (s: string) => new Date(s.includes('T') ? s : `${s.replace(' ', 'T'
 
           <div class="fields">
             <label class="field wide"><span>Název</span><input v-model="form.title" class="input" required maxlength="80" /></label>
-            <label class="field"><span>BPM {{ analysis ? '(odhad)' : '' }}</span><input v-model.number="form.bpm" class="input" type="number" min="30" max="300" required /></label>
+            <label class="field"><span>BPM {{ analysis ? '(odhad)' : '' }}
+              <button type="button" class="mini" @click="form.bpm = Math.round(form.bpm / 2)">÷2</button><button type="button" class="mini" @click="form.bpm = Math.min(300, form.bpm * 2)">×2</button></span>
+              <input v-model.number="form.bpm" class="input" type="number" min="30" max="300" required /></label>
             <label class="field"><span>Tónina {{ analysis ? '(odhad)' : '' }}</span>
               <select v-model="form.key" class="input"><option v-for="k in ALL_KEYS" :key="k" :value="k">{{ k.replace(/m$/, ' moll').replace(/^([A-G]#?)$/, '$1 dur') }}</option></select>
             </label>
@@ -320,6 +324,7 @@ h1 { font-size: clamp(40px, 6vw, 84px); }
 .drop strong { font-size: 19px; font-variation-settings: 'wdth' 112; overflow-wrap: anywhere; }
 .fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .wide { grid-column: 1 / -1; }
+.mini { margin-left: 6px; padding: 0 6px; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--line); font: inherit; }
 .fields .field:nth-child(2), .fields .field:nth-child(3) { grid-column: span 1; }
 select.input { appearance: auto; }
 .check { display: flex; gap: 8px; align-items: center; grid-column: 1 / -1; }

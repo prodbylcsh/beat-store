@@ -130,7 +130,7 @@ onUnmounted(() => cancelAnimationFrame(raf));
 .title { position: relative; z-index: 46; pointer-events: none; color: #fff; mix-blend-mode: difference; font-size: clamp(60px, 13.6vw, 250px); font-variation-settings: 'wdth' var(--w, 125); margin-left: -0.045em; }
 :root[data-live='1'] .title { color: #f1efe9; }
 .ln { display: block; overflow: hidden; padding-block: 0.06em; margin-block: -0.06em; }
-.ln > span { display: inline-block; animation: rise 1.1s var(--ease) both; }
+.ln > span { display: inline-block; white-space: nowrap; animation: rise 1.1s var(--ease) both; }
 .ln:nth-child(2) > span { animation-delay: 0.09s; }
 .ln:nth-child(3) > span { animation-delay: 0.18s; }
 @keyframes rise { from { transform: translateY(105%); } }
