@@ -13,7 +13,7 @@ const status = computed(() =>
 </script>
 
 <template>
-  <header class="bar">
+  <header class="bar glass">
     <RouterLink to="/" class="logo" :aria-label="`${BRAND.name} — home`">
       <span class="mark" :class="{ spin: player.playing }" aria-hidden="true" />
       <span class="name">{{ BRAND.name }}<sup>®</sup></span>
@@ -35,39 +35,41 @@ const status = computed(() =>
 </template>
 
 <style scoped>
+/* Navigace je plovoucí ostrůvek u spodního okraje – obsah pod ní volně podjíždí. */
 .bar {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 60; height: 64px; padding-inline: var(--pad);
-  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
-  background: color-mix(in srgb, var(--paper) 78%, transparent); backdrop-filter: blur(14px) saturate(1.3);
-  border-bottom: 1px solid var(--line-2); transition: background-color 0.7s var(--ease), border-color 0.7s;
+  position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 60; height: 58px; padding: 0 8px 0 16px;
+  display: flex; align-items: center; gap: clamp(12px, 2vw, 26px); border-radius: 999px; white-space: nowrap; max-width: calc(100vw - 16px);
 }
-.logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-variation-settings: 'wdth' 125; font-size: 19px; letter-spacing: -0.02em; justify-self: start; }
+.logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-variation-settings: 'wdth' 125; font-size: 18px; letter-spacing: -0.02em; }
 .logo sup { font-size: 9px; font-weight: 500; margin-left: 2px; opacity: 0.6; }
 .mark {
-  width: 22px; height: 22px; border-radius: 50%; flex: none;
+  width: 24px; height: 24px; border-radius: 50%; flex: none;
   background: radial-gradient(circle, var(--paper) 0 14%, var(--ink) 15% 30%, var(--k) 31% 100%);
-  transition: background 0.5s;
+  transition: background 0.5s, transform 0.3s steps(3);
 }
-.mark.spin { background: conic-gradient(from 0deg, var(--k), var(--ink) 35%, var(--k) 50%, var(--ink) 85%, var(--k)); animation: spin 1.8s linear infinite; mask: radial-gradient(circle, transparent 0 13%, #000 14%); }
+.logo:hover .mark { transform: rotate(120deg) scale(1.15); }
+.mark.spin { background: conic-gradient(from 0deg, var(--k), var(--ink) 35%, var(--k) 50%, var(--ink) 85%, var(--k)); animation: spin 1.8s steps(22) infinite; mask: radial-gradient(circle, transparent 0 13%, #000 14%); }
 @keyframes spin { to { transform: rotate(360deg); } }
-.nav { display: flex; gap: clamp(14px, 2.4vw, 34px); font-size: 14px; font-weight: 550; font-variation-settings: 'wdth' 108; }
-.nav a { position: relative; padding: 6px 0; }
-.nav a::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1.5px; background: currentColor; transform: scaleX(0); transform-origin: right; transition: transform 0.4s var(--ease); }
-.nav a:hover::after, .nav a.router-link-exact-active::after { transform: scaleX(1); transform-origin: left; }
-.right { display: flex; align-items: center; gap: 14px; justify-self: end; }
-.lcd { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: 6px; box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); white-space: nowrap; }
+.nav { display: flex; gap: 2px; font-size: 14px; font-weight: 600; font-variation-settings: 'wdth' 108; }
+.nav a { position: relative; padding: 9px 14px; border-radius: 999px; transition: background-color 0.25s, color 0.25s, transform 0.2s steps(2); }
+.nav a:hover { background: var(--line-2); transform: translateY(-2px); }
+.nav a.router-link-exact-active { background: var(--ink); color: var(--paper); }
+.right { display: flex; align-items: center; gap: 10px; }
+.lcd { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); }
 .lcd i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); }
 .lcd.live { color: var(--ink); }
 .lcd.live i { background: var(--k); box-shadow: 0 0 10px var(--k); animation: blink 1s steps(2) infinite; }
 .lcd b { font-weight: 500; }
 @keyframes blink { 50% { opacity: 0.25; } }
 .lang { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); }
-.lang span { padding: 4px 8px; border-radius: 999px; color: var(--ink-3); transition: background-color 0.25s, color 0.25s; }
+.lang span { padding: 6px 9px; border-radius: 999px; color: var(--ink-3); transition: background-color 0.25s, color 0.25s; }
 .lang span.on { background: var(--ink); color: var(--paper); }
-@media (max-width: 760px) {
-  .bar { grid-template-columns: auto 1fr auto; height: 56px; }
-  .nav { justify-content: center; font-size: 13px; gap: 14px; }
-  .lcd { display: none; }
+@media (max-width: 900px) { .lcd { display: none; } }
+@media (max-width: 560px) {
+  .bar { gap: 6px; padding: 0 6px 0 10px; height: 54px; bottom: 10px; }
   .name { display: none; }
+  .nav { font-size: 12.5px; }
+  .nav a { padding: 8px 9px; }
+  .lang span { padding: 5px 6px; }
 }
 </style>

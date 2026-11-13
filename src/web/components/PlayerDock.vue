@@ -8,7 +8,7 @@ import DiscSlot from './DiscSlot.vue';
 import MiniWave from './MiniWave.vue';
 
 const b = computed(() => player.current);
-watchEffect(() => document.documentElement.style.setProperty('--dock-h', b.value ? '84px' : '0px'));
+watchEffect(() => document.documentElement.style.setProperty('--dock-h', b.value ? '162px' : '86px'));
 </script>
 
 <template>
@@ -40,7 +40,7 @@ watchEffect(() => document.documentElement.style.setProperty('--dock-h', b.value
 
 <style scoped>
 .dock {
-  position: fixed !important; left: 12px; right: 12px; bottom: 12px; z-index: 40; height: 68px; padding: 0 16px 0 10px;
+  position: fixed !important; left: 50%; translate: -50% 0; width: min(1080px, calc(100vw - 16px)); bottom: 80px; z-index: 40; height: 68px; padding: 0 16px 0 10px;
   display: grid; grid-template-columns: auto minmax(120px, 220px) auto auto 1fr auto auto; align-items: center; gap: 16px;
   border-radius: 999px;
 }
@@ -61,9 +61,10 @@ watchEffect(() => document.documentElement.style.setProperty('--dock-h', b.value
 .wave { height: 34px; min-width: 0; }
 .time { font-variant-numeric: tabular-nums; }
 .dock-enter-active, .dock-leave-active { transition: transform 0.6s var(--ease), opacity 0.4s; }
-.dock-enter-from, .dock-leave-to { transform: translateY(120%); opacity: 0; }
+.dock-enter-from, .dock-leave-to { transform: translateY(140%) scale(0.9); opacity: 0; }
+@media (max-width: 560px) { .dock { bottom: 72px; height: 62px; } }
 @media (max-width: 860px) {
-  .dock { grid-template-columns: auto 1fr auto auto; gap: 10px; left: 8px; right: 8px; bottom: 8px; padding-right: 10px; }
+  .dock { grid-template-columns: auto 1fr auto auto; gap: 10px; padding-right: 10px; }
   .wave, .time { display: none; }
   .transport button:not(.pp) { display: none; }
   .buy { padding: 0 12px; }

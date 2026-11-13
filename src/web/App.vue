@@ -14,6 +14,8 @@ import { beats, loadCatalog } from './lib/store';
 
 const route = useRoute();
 const bare = computed(() => route.path.startsWith('/admin'));
+// detail beatu nemá patičku: na jeho konci plynule navazuje další beat
+const chained = computed(() => route.path.startsWith('/beat/'));
 
 function onKey(e: KeyboardEvent) {
   const el = e.target as HTMLElement | null;
@@ -70,7 +72,7 @@ onUnmounted(() => { window.removeEventListener('keydown', onKey); clearInterval(
       </Transition>
     </RouterView>
   </main>
-  <SiteFooter v-if="!bare" />
+  <SiteFooter v-if="!bare && !chained" />
   <PlayerDock v-if="!bare" />
   <FxLayer v-if="!bare" />
   <PageCurtain />

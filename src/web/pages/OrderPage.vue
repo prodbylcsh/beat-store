@@ -89,7 +89,7 @@ const until = computed(() =>
 </template>
 
 <style scoped>
-.order { min-height: 82vh; padding-top: clamp(110px, 16vh, 190px); padding-bottom: 80px; display: grid; gap: 18px; align-content: start; justify-items: start; }
+.order { min-height: 82vh; padding-top: clamp(56px, 10vh, 120px); padding-bottom: 80px; display: grid; gap: 18px; align-content: start; justify-items: start; }
 h1 { font-size: clamp(48px, 10vw, 170px); margin-left: -0.04em; }
 .lead { font-size: clamp(17px, 1.6vw, 22px); max-width: 56ch; }
 .lead a { text-decoration: underline; }

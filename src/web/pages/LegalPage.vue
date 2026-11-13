@@ -19,7 +19,7 @@ watchEffect(() => (document.title = `${d.value.title} · LCSH`));
 </template>
 
 <style scoped>
-.legal { padding-top: clamp(96px, 13vh, 150px); padding-bottom: 80px; }
+.legal { padding-top: clamp(40px, 7vh, 84px); padding-bottom: 80px; }
 h1 { font-size: clamp(44px, 9vw, 150px); margin: 0 0 clamp(28px, 4vw, 56px) -0.04em; }
 .prose p { font-size: 16.5px; line-height: 1.6; }
 </style>

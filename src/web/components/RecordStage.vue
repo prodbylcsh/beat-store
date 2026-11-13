@@ -85,7 +85,7 @@ function frame(now: number) {
   cur.px += (tp - cur.px) * (1 - Math.exp(-dt * 5));
   if (cur.alpha < 0.004 || !display || cur.size < 4) return;
   if (cur.cx < -cur.size || cur.cx > w + cur.size || cur.cy < -cur.size || cur.cy > h + cur.size) return;
-  discRect.cx = cur.cx; discRect.cy = cur.cy; discRect.size = isCurrent && player.playing ? cur.size : 0;
+  discRect.cx = cur.cx; discRect.cy = cur.cy; discRect.size = cur.size; discRect.live = isCurrent && player.playing;
   // looky se nastavují každý snímek – po načtení písem se tím obnoví i textura etikety
   r.setLook(0, lookFor(shown ?? display));
   r.setLook(1, lookFor(incoming ?? shown ?? display));

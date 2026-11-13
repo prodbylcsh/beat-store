@@ -85,7 +85,7 @@ const cs = {
   svc: {
     eyebrow: 'Služby', title1: 'Mix &', title2: 'Master',
     sub: 'Pošli stopy, vrátím ti skladbu připravenou na release. Pracuju na tom sám, bez šablon a bez AI masteringu.',
-    pick: 'Co potřebuješ', songs: 'Počet skladeb', addons: 'Doplňky',
+    pick: 'Co potřebuješ', songs: 'Počet skladeb', addons: 'Doplňky', mixer: 'LCSH Mixer — routing objednávky', songsShort: 'SKLADBY', selected: 'Vybraný insert',
     s: {
       mix: { name: 'Mix', desc: 'Vokály + beat nebo celý projekt ve stopách. Čistota, hloubka, prostor.' },
       master: { name: 'Master', desc: 'Finální hlasitost a barva pro streaming. Ze stereo mixu.' },
@@ -129,7 +129,9 @@ const cs = {
   footer: { claim: 'Beaty lisované ze zvuku.', terms: 'Obchodní podmínky', privacy: 'Soukromí', contact: 'Kontakt', top: 'Nahoru', made: 'Navrženo a postaveno pro poslech nahlas.' },
   notFound: { title: 'Tahle drážka je prázdná.', text: 'Stránka neexistuje nebo ji někdo přehrál.', back: 'Zpět do katalogu' },
   dock: { license: 'Licence' },
-  crate: { drag: 'táhni', keys: 'listuj', crate: 'Bedna', list: 'Seznam', sticker: 'nové beaty každý týden' },
+  crate: { drag: 'táhni vedle = listuj', keys: 'listuj', crate: 'Bedna', list: 'Seznam', sticker: 'nové beaty každý týden', open: 'Detail a licence', tilt: 'táhni desku = nakloň ji', tap: 'klepni = detail' },
+  docs: { contract: 'Licenční smlouva', licensor: 'poskytovatel', licensee: 'nabyvatel', stampLease: 'Pronájem · 1 rok', stampExclusive: 'Výhradní', chosen: 'Vybráno' },
+  chain: { next: 'Další beat', keep: 'Scrolluj dál', almost: 'Ještě kousek…' },
 };
 
 type Dict = typeof cs;
@@ -205,7 +207,7 @@ const en: Dict = {
   svc: {
     eyebrow: 'Services', title1: 'Mix &', title2: 'Master',
     sub: 'Send the stems, get back a release-ready track. I do it myself – no templates, no AI mastering.',
-    pick: 'What you need', songs: 'Number of songs', addons: 'Add-ons',
+    pick: 'What you need', songs: 'Number of songs', addons: 'Add-ons', mixer: 'LCSH Mixer — order routing', songsShort: 'SONGS', selected: 'Selected insert',
     s: {
       mix: { name: 'Mix', desc: 'Vocals + beat or a full multitrack session. Clarity, depth, space.' },
       master: { name: 'Master', desc: 'Final loudness and tone for streaming. From a stereo mix.' },
@@ -249,7 +251,9 @@ const en: Dict = {
   footer: { claim: 'Beats pressed from sound.', terms: 'Terms of sale', privacy: 'Privacy', contact: 'Contact', top: 'Top', made: 'Designed and built to be played loud.' },
   notFound: { title: 'This groove is empty.', text: 'The page does not exist, or someone played it out.', back: 'Back to the catalog' },
   dock: { license: 'License' },
-  crate: { drag: 'drag', keys: 'browse', crate: 'Crate', list: 'List', sticker: 'new beats every week' },
+  crate: { drag: 'drag beside it = browse', keys: 'browse', crate: 'Crate', list: 'List', sticker: 'new beats every week', open: 'Details & license', tilt: 'drag the record = tilt it', tap: 'tap = details' },
+  docs: { contract: 'License agreement', licensor: 'licensor', licensee: 'licensee', stampLease: 'Lease · 1 year', stampExclusive: 'Exclusive', chosen: 'Selected' },
+  chain: { next: 'Next beat', keep: 'Keep scrolling', almost: 'Almost there…' },
 };
 
 const dicts = { cs, en };

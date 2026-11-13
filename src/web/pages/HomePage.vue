@@ -140,7 +140,7 @@ onUnmounted(() => cancelAnimationFrame(raf));
 </template>
 
 <style scoped>
-.hero { position: relative; min-height: 100svh; padding-top: clamp(96px, 13vh, 150px); display: grid; grid-template-rows: 1fr auto; }
+.hero { position: relative; min-height: 100svh; padding-top: clamp(40px, 7vh, 84px); display: grid; grid-template-rows: 1fr auto; }
 .copy { position: relative; }
 /* Titulek leží NAD deskou a prolíná se s ní (difference) – zůstane čitelný a obarví se podle beatu. */
 .title { position: relative; z-index: 46; pointer-events: none; color: #fff; mix-blend-mode: difference; font-size: clamp(60px, 13.6vw, 250px); font-variation-settings: 'wdth' var(--w, 125); margin-left: -0.045em; }
@@ -156,7 +156,7 @@ onUnmounted(() => cancelAnimationFrame(raf));
 .cta { display: flex; gap: 10px; flex-wrap: wrap; }
 @keyframes in { from { opacity: 0; transform: translateY(16px); } }
 
-.deckzone { position: absolute; right: -3.5vw; top: clamp(84px, 11vh, 130px); width: min(50vw, 80vh); pointer-events: none; }
+.deckzone { position: absolute; right: -3.5vw; top: clamp(30px, 5vh, 70px); width: min(50vw, 80vh); pointer-events: none; }
 .hero-disc { width: 100%; pointer-events: auto; }
 .ondeck { position: absolute; right: 9%; top: 7%; display: grid; gap: 3px; padding: 14px 18px; border-radius: 18px; z-index: 50; pointer-events: auto; }
 .hero-sticker { position: absolute; left: -4%; top: 14%; z-index: 50; pointer-events: auto; }

@@ -63,7 +63,7 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.lic { padding-top: clamp(96px, 13vh, 150px); }
+.lic { padding-top: clamp(40px, 7vh, 84px); }
 .top { display: grid; gap: 20px; margin-bottom: clamp(32px, 5vw, 64px); }
 .title { font-size: clamp(64px, 15vw, 270px); margin-left: -0.045em; }
 .sub { max-width: 48ch; font-size: clamp(16px, 1.4vw, 20px); color: var(--ink-2); }

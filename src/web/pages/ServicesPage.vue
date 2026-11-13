@@ -26,6 +26,9 @@ function toggleAddon(a: AddonId) {
   if (i > -1) f.addons.splice(i, 1);
   else f.addons.push(a);
 }
+const SHORT: Record<AddonId, string> = { express: 'EXPRES', tuning: 'TUNE', stemsOut: 'STEMS' };
+const SVC_SHORT: Record<ServiceId, string> = { mix: 'MIX', master: 'MASTER', mixmaster: 'MIX+MST' };
+const level = computed(() => Math.min(14, 4 + f.songs + f.addons.length * 2));
 const addonPrice = (a: AddonId) => (ADDONS[a].type === 'percent' ? `+${ADDONS[a].value} %` : `+${money(ADDONS[a].value)}`);
 
 async function submit() {
@@ -51,43 +54,81 @@ async function submit() {
       <p class="sub">{{ t.svc.sub }}</p>
     </header>
 
-    <form v-tilt="2" class="console glass" @submit.prevent="submit">
-      <section class="panel pick">
-        <h2 class="mono"><span>1</span>{{ t.svc.pick }}</h2>
-        <div class="services" role="radiogroup">
-          <button v-for="s in SERVICE_IDS" :key="s" type="button" role="radio" :aria-checked="f.service === s" class="service" :class="{ on: f.service === s }" @click="f.service = s">
-            <span class="led" aria-hidden="true" />
-            <strong class="display">{{ t.svc.s[s].name }}</strong>
-            <span class="desc">{{ t.svc.s[s].desc }}</span>
-            <span class="mono foot">{{ money(SERVICES[s].price) }} {{ t.svc.perSong }} · {{ t.svc.days(SERVICES[s].days) }} · {{ t.svc.revisions(SERVICES[s].revisions) }}</span>
-          </button>
-        </div>
-      </section>
-
-      <section class="panel qty">
-        <h2 class="mono"><span>2</span>{{ t.svc.songs }}</h2>
-        <div class="songs">
+    <form class="mixer" @submit.prevent="submit">
+      <div class="rack-head mono"><span><i class="pwr" />{{ t.svc.mixer }}</span><span>{{ t.svc.pick }} → {{ t.svc.addons }} → {{ t.svc.songs }}</span></div>
+      <div class="strips">
+        <!-- inserty = služby (vybereš jednu) -->
+        <button
+          v-for="(s, i) in SERVICE_IDS" :key="s" type="button" role="radio" :aria-checked="f.service === s" :aria-label="t.svc.s[s].name"
+          class="strip" :class="{ on: f.service === s }" @click="f.service = s"
+        >
+          <span class="slot mono">INS {{ i + 1 }}</span>
+          <span class="plate">{{ SVC_SHORT[s] }}</span>
+          <span class="knob" :style="{ '--a': f.service === s ? '40deg' : '-120deg' }" />
+          <span class="chan">
+            <span class="vu"><i /><i /></span>
+            <span class="track"><span class="cap tex-metal" :style="{ bottom: f.service === s ? '72%' : '18%' }" /></span>
+          </span>
+          <span class="led" />
+          <span class="val mono">{{ money(SERVICES[s].price) }}</span>
+        </button>
+        <span class="gap" aria-hidden="true" />
+        <!-- efektové sloty = doplňky (zapínáš / vypínáš) -->
+        <button
+          v-for="(a, i) in ADDON_IDS" :key="a" type="button" role="switch" :aria-checked="f.addons.includes(a)" :aria-label="t.svc.a[a]"
+          class="strip fx" :class="{ on: f.addons.includes(a) }" @click="toggleAddon(a)"
+        >
+          <span class="slot mono">FX {{ i + 1 }}</span>
+          <span class="plate">{{ SHORT[a] }}</span>
+          <span class="knob" :style="{ '--a': f.addons.includes(a) ? '120deg' : '-130deg' }" />
+          <span class="chan">
+            <span class="vu"><i /><i /></span>
+            <span class="track"><span class="cap tex-metal" :style="{ bottom: f.addons.includes(a) ? '60%' : '8%' }" /></span>
+          </span>
+          <span class="led" />
+          <span class="val mono">{{ addonPrice(a) }}</span>
+        </button>
+        <span class="gap" aria-hidden="true" />
+        <!-- skutečný fader: počet skladeb -->
+        <div class="strip songs on">
+          <span class="slot mono">QTY</span>
+          <span class="plate">{{ t.svc.songsShort }}</span>
           <output class="digits">{{ String(f.songs).padStart(2, '0') }}</output>
-          <input v-model.number="f.songs" type="range" min="1" :max="MAX_SONGS" step="1" class="fader" :aria-label="t.svc.songs" :style="{ '--p': `${((f.songs - 1) / (MAX_SONGS - 1)) * 100}%` }" />
-          <span class="mono dim">{{ discount ? t.svc.discount(discount) : ' ' }}</span>
+          <span class="chan">
+            <span class="scale mono" aria-hidden="true"><b>12</b><b>9</b><b>6</b><b>3</b><b>1</b></span>
+            <input v-model.number="f.songs" type="range" min="1" :max="MAX_SONGS" step="1" class="vfader" :aria-label="t.svc.songs" />
+          </span>
+          <span class="led" />
+          <span class="val mono">{{ discount ? `−${discount} %` : '—' }}</span>
         </div>
-        <h2 class="mono second"><span>3</span>{{ t.svc.addons }}</h2>
-        <div class="switches">
-          <button v-for="a in ADDON_IDS" :key="a" type="button" role="switch" :aria-checked="f.addons.includes(a)" class="switch" @click="toggleAddon(a)">
-            <i aria-hidden="true" /><span>{{ t.svc.a[a] }}</span><span class="mono dim">{{ addonPrice(a) }}</span>
-          </button>
+        <!-- master: výsledná cena -->
+        <div class="strip master on">
+          <span class="slot mono">MASTER OUT</span>
+          <span class="lcd">
+            <span class="mono">{{ t.svc.total }}</span>
+            <output class="price">{{ money(total) }}</output>
+            <span class="mono est">≈ {{ t.svc.days(days) }} · {{ t.svc.revisions(SERVICES[f.service].revisions) }}</span>
+          </span>
+          <span class="big-vu" aria-hidden="true">
+            <span v-for="ch in 2" :key="ch" class="col"><i v-for="n in 14" :key="n" :class="{ lit: 15 - n <= level - (ch - 1) }" /></span>
+          </span>
+          <span class="val mono">L&nbsp;&nbsp;&nbsp;R</span>
         </div>
-      </section>
+      </div>
 
-      <section class="panel lcd">
-        <p class="mono">{{ t.svc.total }}</p>
-        <output class="price">{{ money(total) }}</output>
-        <p class="mono est">≈ {{ t.svc.days(days) }} · {{ t.svc.revisions(SERVICES[f.service].revisions) }}</p>
-        <div class="meters" aria-hidden="true"><i v-for="n in 14" :key="n" :class="{ on: n <= 3 + f.songs + f.addons.length * 2 }" /></div>
-      </section>
+      <div class="inspector">
+        <div>
+          <p class="mono">{{ t.svc.selected }}</p>
+          <h2 class="display">{{ t.svc.s[f.service].name }}</h2>
+          <p class="desc">{{ t.svc.s[f.service].desc }}</p>
+        </div>
+        <ul class="legend mono">
+          <li v-for="a in ADDON_IDS" :key="a" :class="{ on: f.addons.includes(a) }"><i />{{ SHORT[a] }} — {{ t.svc.a[a] }} <span>{{ addonPrice(a) }}</span></li>
+        </ul>
+      </div>
 
-      <section class="panel brief">
-        <h2 class="mono"><span>4</span>{{ t.svc.form }}</h2>
+      <section v-tilt="2" class="brief glass">
+        <h2 class="mono"><span>→</span>{{ t.svc.form }}</h2>
         <div v-if="done" class="done" role="status">
           <h3 class="display">{{ t.svc.okTitle }}</h3><p class="dim">{{ t.svc.okText }}</p>
         </div>
@@ -119,7 +160,7 @@ async function submit() {
 </template>
 
 <style scoped>
-.svc { padding-top: clamp(96px, 13vh, 150px); }
+.svc { padding-top: clamp(40px, 7vh, 84px); }
 .top { display: grid; gap: 20px; margin-bottom: clamp(32px, 5vw, 72px); }
 .title { font-size: clamp(64px, 15vw, 270px); display: flex; flex-wrap: wrap; gap: 0 0.22em; margin-left: -0.045em; }
 .title span { animation: rise 1s var(--ease) both; display: inline-block; }
@@ -127,47 +168,81 @@ async function submit() {
 @keyframes rise { from { transform: translateY(40%); opacity: 0; } }
 .sub { max-width: 46ch; font-size: clamp(16px, 1.4vw, 20px); color: var(--ink-2); }
 
-.console { display: grid; grid-template-columns: 1.5fr 1fr 0.9fr; border-radius: 26px; }
-.lcd { border-radius: 0 26px 0 0; }
-.panel { padding: clamp(18px, 2.2vw, 30px); min-width: 0; }
-.panel + .panel { border-left: 1px solid var(--line); }
-.brief { grid-column: 1 / -1; border-left: 0 !important; border-top: 1px solid var(--line); }
-h2 { display: flex; align-items: center; gap: 10px; color: var(--ink-2); margin-bottom: 16px; }
-h2 span { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 4px; background: var(--ink); color: var(--paper); font-size: 10px; }
-h2.second { margin-top: 26px; }
-.services { display: grid; gap: 8px; }
-.service { position: relative; text-align: left; display: grid; gap: 4px; padding: 16px 18px 16px 44px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line); transition: background-color 0.3s, color 0.3s, transform 0.4s var(--ease); }
-.service:hover { transform: translateX(4px); }
-.service.on { background: var(--ink); color: var(--paper); box-shadow: none; }
-.service strong { font-size: clamp(24px, 2.6vw, 38px); }
-.service .desc { font-size: 14px; opacity: 0.75; }
-.service .foot { opacity: 0.65; margin-top: 6px; font-size: 10px; }
-.led { position: absolute; left: 18px; top: 26px; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-3); }
-.service.on .led { background: var(--k); box-shadow: 0 0 12px var(--k); }
+/* ------------------------------ MIXÁŽNÍ PULT ------------------------------ */
+.mixer { --m1: #30353b; --m2: #1f2327; --m-line: #0d0f11; --m-text: #c9ced4; --led: #7dff6a; display: grid; gap: 18px; }
+.rack-head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 10px 16px; border-radius: 12px 12px 0 0; background: linear-gradient(#3a4047, #2a2f34); color: var(--m-text); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), inset 0 -1px 0 var(--m-line); margin-bottom: -18px; }
+.rack-head span { display: inline-flex; align-items: center; gap: 8px; }
+.pwr { width: 8px; height: 8px; border-radius: 50%; background: var(--led); box-shadow: 0 0 10px var(--led); animation: blink 1.2s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0.35; } }
+.strips { display: flex; align-items: stretch; gap: 0; padding: 14px; overflow-x: auto; border-radius: 0 0 18px 18px; background: #15181b; box-shadow: inset 0 2px 10px rgb(0 0 0 / 0.6), 0 40px 60px -40px rgb(0 0 0 / 0.7); scrollbar-width: thin; }
+.gap { flex: 0 0 12px; }
+.strip {
+  position: relative; flex: 0 0 96px; display: grid; grid-template-rows: auto auto auto 1fr auto auto; justify-items: center; gap: 10px; padding: 10px 8px 12px; height: 460px; color: var(--m-text); text-align: center;
+  background: linear-gradient(180deg, var(--m1), var(--m2)); box-shadow: inset 1px 0 0 rgb(255 255 255 / 0.07), inset -1px 0 0 var(--m-line), inset 0 1px 0 rgb(255 255 255 / 0.1);
+  background-image: linear-gradient(180deg, var(--m1), var(--m2)), repeating-linear-gradient(0deg, rgb(255 255 255 / 0.02) 0 1px, transparent 1px 3px);
+  transition: filter 0.2s steps(2), transform 0.15s steps(2);
+}
+.strip:first-child { border-radius: 8px 0 0 8px; }
+button.strip { cursor: pointer; }
+button.strip:hover { filter: brightness(1.18); }
+button.strip:active { transform: translateY(2px); }
+.strip.on { --m1: #3b434b; --m2: #262b30; }
+.slot { font-size: 9px; opacity: 0.6; }
+.plate { width: 100%; padding: 5px 2px; border-radius: 3px; background: #0c0e10; color: #8f979f; font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; box-shadow: inset 0 1px 3px #000; transition: color 0.2s, background-color 0.2s; white-space: nowrap; overflow: hidden; }
+.strip.on .plate { color: #0e0e0c; background: var(--k); }
+.knob { width: 38px; height: 38px; border-radius: 50%; background: conic-gradient(from 210deg, #6b737b, #2a2e33 40%, #555c64 75%, #6b737b); box-shadow: 0 3px 5px rgb(0 0 0 / 0.6), inset 0 1px 1px rgb(255 255 255 / 0.3); position: relative; transform: rotate(var(--a)); transition: transform 0.4s steps(6); }
+.knob::after { content: ''; position: absolute; left: 50%; top: 3px; width: 3px; height: 12px; margin-left: -1.5px; border-radius: 2px; background: #fff; }
+.strip.on .knob::after { background: var(--k); box-shadow: 0 0 6px var(--k); }
+.chan { display: flex; gap: 8px; align-items: stretch; height: 100%; min-height: 0; }
+.vu { display: flex; gap: 2px; width: 12px; padding: 2px; border-radius: 2px; background: #07090a; box-shadow: inset 0 1px 3px #000; }
+.vu i { flex: 1; align-self: flex-end; height: 6%; background: linear-gradient(0deg, #2ee35c 0 62%, #f2d43a 62% 84%, #ff3b30 84%); background-size: 100% 240px; background-position: bottom; }
+/* ukazatele hlasitosti běží trhaně (12 fps) */
+.strip.on .vu i { animation: vu 0.75s steps(9) infinite alternate; }
+.strip.on .vu i:last-child { animation-duration: 0.58s; animation-delay: -0.2s; }
+@keyframes vu { 0% { height: 22%; } 35% { height: 78%; } 60% { height: 46%; } 100% { height: 92%; } }
+.track { position: relative; width: 26px; border-radius: 3px; background: linear-gradient(90deg, transparent 11px, #060708 11px 15px, transparent 15px), repeating-linear-gradient(0deg, rgb(255 255 255 / 0.18) 0 1px, transparent 1px 12.5%); }
+.cap { position: absolute; left: -3px; right: -3px; height: 34px; margin-bottom: -17px; border-radius: 3px; box-shadow: 0 4px 6px rgb(0 0 0 / 0.6), inset 0 0 0 1px rgb(0 0 0 / 0.5); transition: bottom 0.45s steps(7); }
+.cap::after { content: ''; position: absolute; left: 2px; right: 2px; top: 50%; height: 2px; margin-top: -1px; background: #111; }
+.led { width: 26px; height: 9px; border-radius: 2px; background: #0b2a10; box-shadow: inset 0 1px 2px #000; transition: background-color 0.1s, box-shadow 0.1s; }
+.strip.on .led { background: var(--led); box-shadow: 0 0 12px var(--led), inset 0 1px 1px rgb(255 255 255 / 0.6); }
+.val { font-size: 9.5px; white-space: nowrap; opacity: 0.85; }
+.strip.fx { --led: #ffb84a; }
 
-.songs { display: grid; gap: 10px; }
-.digits { font-family: var(--mono); font-size: clamp(54px, 6vw, 90px); font-weight: 600; letter-spacing: -0.05em; line-height: 0.9; font-variant-numeric: tabular-nums; }
-.fader { -webkit-appearance: none; appearance: none; width: 100%; height: 34px; background: transparent; cursor: pointer; }
-.fader::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--k) var(--p), var(--line) var(--p)); }
-.fader::-moz-range-track { height: 4px; border-radius: 2px; background: var(--line); }
-.fader::-moz-range-progress { height: 4px; background: var(--k); }
-.fader::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 34px; margin-top: -15px; border-radius: 5px; background: var(--ink); box-shadow: inset 0 0 0 1px var(--paper), inset 0 -14px 0 -11px var(--k); }
-.fader::-moz-range-thumb { width: 22px; height: 34px; border: 0; border-radius: 5px; background: var(--ink); }
-.switches { display: grid; gap: 4px; }
-.switch { display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; align-items: center; padding: 9px 0; text-align: left; font-size: 14.5px; }
-.switch i { width: 38px; height: 22px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); position: relative; transition: background-color 0.25s; }
-.switch i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); transition: transform 0.35s var(--ease), background-color 0.25s; }
-.switch[aria-checked='true'] i { background: var(--k); box-shadow: none; }
-.switch[aria-checked='true'] i::after { transform: translateX(16px); background: #0e0e0c; }
+.songs { flex-basis: 112px; }
+.digits { font-family: var(--mono); font-size: 30px; font-weight: 700; line-height: 1; color: var(--k); text-shadow: 0 0 14px color-mix(in srgb, var(--k) 60%, transparent); padding: 4px 8px; border-radius: 4px; background: #07090a; box-shadow: inset 0 1px 4px #000; font-variant-numeric: tabular-nums; }
+.scale { display: grid; align-content: space-between; font-size: 8.5px; opacity: 0.55; padding-block: 6px; }
+.scale b { font-weight: 500; }
+.vfader { -webkit-appearance: none; appearance: none; writing-mode: vertical-lr; direction: rtl; width: 34px; height: 100%; background: transparent; cursor: ns-resize; margin: 0; }
+.vfader::-webkit-slider-runnable-track { width: 5px; border-radius: 3px; background: #060708; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08); }
+.vfader::-moz-range-track { width: 5px; border-radius: 3px; background: #060708; }
+.vfader::-webkit-slider-thumb { -webkit-appearance: none; width: 34px; height: 40px; margin-left: -14.5px; border-radius: 4px; background: linear-gradient(180deg, #e6e3dc, #8f8c85 46%, #111 46% 54%, #c9c6be 54%, #77746e); box-shadow: 0 5px 8px rgb(0 0 0 / 0.7), inset 0 0 0 1px rgb(0 0 0 / 0.5); }
+.vfader::-moz-range-thumb { width: 34px; height: 40px; border: 0; border-radius: 4px; background: linear-gradient(180deg, #e6e3dc, #8f8c85 46%, #111 46% 54%, #c9c6be 54%, #77746e); }
 
-.lcd { background: #0b0b0a; color: #edebe6; display: grid; align-content: space-between; gap: 14px; }
-.lcd .mono { color: rgb(237 235 230 / 0.6); }
-.price { font-family: var(--mono); font-size: clamp(30px, 3.4vw, 54px); font-weight: 600; letter-spacing: -0.05em; line-height: 1; color: var(--k); text-shadow: 0 0 26px color-mix(in srgb, var(--k) 55%, transparent); overflow-wrap: anywhere; transition: color 0.5s; }
-.meters { display: flex; gap: 4px; align-items: flex-end; height: 44px; }
-.meters i { flex: 1; height: 100%; border-radius: 2px; background: rgb(237 235 230 / 0.12); transition: background-color 0.3s; }
-.meters i.on { background: var(--k); }
-.meters i.on:nth-child(n + 12) { background: #ff3b30; }
+.master { flex: 1 0 230px; grid-template-rows: auto auto 1fr auto; border-radius: 0 8px 8px 0; padding-inline: 14px; }
+.lcd { width: 100%; display: grid; gap: 6px; padding: 14px; border-radius: 6px; background: #060807; box-shadow: inset 0 2px 8px #000, 0 1px 0 rgb(255 255 255 / 0.08); text-align: left; }
+.lcd .mono { color: rgb(201 206 212 / 0.6); font-size: 9.5px; }
+.price { font-family: var(--mono); font-size: clamp(26px, 2.6vw, 40px); font-weight: 700; letter-spacing: -0.05em; line-height: 1; color: var(--k); text-shadow: 0 0 22px color-mix(in srgb, var(--k) 55%, transparent); overflow-wrap: anywhere; }
+.big-vu { display: flex; gap: 10px; width: 100%; justify-content: center; align-items: stretch; min-height: 0; }
+.big-vu .col { display: grid; gap: 3px; width: 34px; }
+.big-vu i { border-radius: 2px; background: #0c2412; transition: background-color 0.1s steps(1); }
+.big-vu i.lit { background: #2ee35c; box-shadow: 0 0 8px rgb(46 227 92 / 0.6); }
+.big-vu i:nth-child(-n + 4).lit { background: #f2d43a; box-shadow: 0 0 8px rgb(242 212 58 / 0.6); }
+.big-vu i:nth-child(-n + 2).lit { background: #ff3b30; box-shadow: 0 0 8px rgb(255 59 48 / 0.7); }
 
+.inspector { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 8px 4px; align-items: end; }
+.inspector h2 { font-size: clamp(34px, 5vw, 72px); margin: 6px 0; }
+.inspector .mono { color: var(--ink-2); }
+.desc { color: var(--ink-2); max-width: 44ch; }
+.legend { display: grid; gap: 8px; color: var(--ink-2); }
+.legend li { display: flex; align-items: center; gap: 8px; }
+.legend i { width: 8px; height: 8px; border-radius: 2px; background: var(--line); }
+.legend li.on { color: var(--ink); }
+.legend li.on i { background: #ffb84a; box-shadow: 0 0 8px #ffb84a; }
+.legend span { margin-left: auto; }
+
+.brief { padding: clamp(18px, 2.4vw, 32px); border-radius: 26px; }
+.brief h2 { display: flex; align-items: center; gap: 10px; color: var(--ink-2); margin-bottom: 16px; }
+.brief h2 span { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 4px; background: var(--ink); color: var(--paper); font-size: 10px; }
 .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .wide { grid-column: 1 / -1; }
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
@@ -184,18 +259,14 @@ h2.second { margin-top: 26px; }
 .process li + li { padding-left: 22px; border-left: 1px solid var(--line); }
 .process .n { color: var(--k); }
 .process h3 { font-size: clamp(22px, 2.3vw, 34px); }
-@media (max-width: 1000px) {
-  .console { grid-template-columns: 1fr 1fr; }
-  .pick { grid-column: 1 / -1; }
-  .qty { border-left: 0 !important; border-top: 1px solid var(--line); }
-  .lcd { border-top: 1px solid var(--line); }
-  .process ol { grid-template-columns: 1fr 1fr; }
-  .process li:nth-child(3) { padding-left: 0; border-left: 0; }
-}
+@media (max-width: 1000px) { .process ol { grid-template-columns: 1fr 1fr; } .process li:nth-child(3) { padding-left: 0; border-left: 0; } }
 @media (max-width: 640px) {
-  .console, .fields, .process ol { grid-template-columns: 1fr; }
-  .panel + .panel { border-left: 0; border-top: 1px solid var(--line); }
+  .fields, .process ol, .inspector { grid-template-columns: 1fr; }
   .process li + li { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
   .title span + span { -webkit-text-stroke-width: 1.2px; }
+  .strip { flex-basis: 78px; height: 400px; }
+  .songs { flex-basis: 96px; }
+  .master { flex-basis: 190px; }
+  .mixer { margin-inline: calc(var(--pad) * -1 + 6px); }
 }
 </style>

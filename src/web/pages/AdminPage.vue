@@ -310,7 +310,7 @@ const date = (s: string) => new Date(s.includes('T') ? s : `${s.replace(' ', 'T'
 </template>
 
 <style scoped>
-.admin { padding-top: 96px; padding-bottom: 80px; min-height: 100vh; }
+.admin { padding-top: 40px; padding-bottom: 80px; min-height: 100vh; }
 .login { max-width: 380px; margin: 12vh auto 0; display: grid; gap: 18px; }
 h1 { font-size: clamp(40px, 6vw, 84px); }
 .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
@@ -333,7 +333,7 @@ select.input { appearance: auto; }
 .progress span { position: relative; display: grid; place-items: center; height: 100%; color: var(--ink); mix-blend-mode: difference; color: #fff; }
 .err { color: #d6402c; font-weight: 600; }
 .ok { color: #1a8a4a; font-weight: 600; }
-.side { display: grid; gap: 14px; position: sticky; top: 90px; }
+.side { display: grid; gap: 14px; position: sticky; top: 24px; }
 .art { aspect-ratio: 1; max-width: 340px; }
 .ph { height: 100%; border-radius: 50%; border: 1.5px dashed var(--line); display: grid; place-items: center; text-align: center; padding: 30px; }
 .tag { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding-top: 16px; border-top: 1px solid var(--line); }

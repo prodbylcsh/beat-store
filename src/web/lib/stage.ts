@@ -59,4 +59,4 @@ export function activeSlot(): Slot | null {
 }
 
 /** kde je právě vykreslená hlavní deska (pro kreslené efekty) */
-export const discRect = { cx: 0, cy: 0, size: 0 };
+export const discRect = { cx: 0, cy: 0, size: 0, live: false };

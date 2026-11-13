@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import type { Slot } from '../lib/stage';
 import type { Beat } from '../../shared/types';
 import { t } from '../lib/i18n';
 import { player, seekBy, toggle } from '../lib/player';
@@ -16,9 +17,12 @@ let off: (() => void) | null = null;
 const target = computed(() => props.beat ?? player.current ?? beats.value[0] ?? null);
 const isPlaying = computed(() => player.playing && player.current?.id === target.value?.id);
 
+let slot: Slot | null = null;
 onMounted(() => {
-  off = registerSlot({ el: el.value!, priority: props.priority, tilt: props.tilt, beat: () => props.beat ?? null, visible: false });
+  slot = { el: el.value!, priority: props.priority, tilt: props.tilt, beat: () => props.beat ?? null, visible: false };
+  off = registerSlot(slot);
 });
+watch(() => props.tilt, (v) => { if (slot) slot.tilt = v; });
 onUnmounted(() => off?.());
 
 // --- scratch: tažením se deska pootáčí a skladba přetáčí ---
