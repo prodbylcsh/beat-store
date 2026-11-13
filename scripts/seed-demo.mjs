@@ -4,9 +4,9 @@
  *
  *   node scripts/seed-demo.mjs [--url http://localhost:8787] [--password admin-local-dev] [--count 10]
  */
-import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { crc32 } from 'node:zlib';
+import { Mp3Encoder } from '@breezystack/lamejs';
 import { computePeaks, peaksToBase64, seedFromPeaks } from '../src/shared/peaks.ts';
 
 const arg = (name, def) => {
@@ -14,11 +14,11 @@ const arg = (name, def) => {
   return i > -1 ? process.argv[i + 1] : def;
 };
 const BASE = arg('url', 'http://localhost:8787');
-const PASSWORD = arg('password', process.env.ADMIN_PASSWORD ?? 'admin-local-dev');
+// heslo: --password, jinak ADMIN_PASSWORD z prostředí nebo ze souboru .dev.vars
+const fromFile = existsSync('.dev.vars') ? readFileSync('.dev.vars', 'utf8').match(/^ADMIN_PASSWORD=(.*)$/m)?.[1]?.trim() : undefined;
+const PASSWORD = arg('password', process.env.ADMIN_PASSWORD ?? fromFile ?? '');
 const COUNT = Number(arg('count', '10'));
 const SR = 44100;
-const CACHE = '.demo-cache';
-mkdirSync(CACHE, { recursive: true });
 
 const BEATS = [
   { title: 'Noční linka', genre: 'Trap', bpm: 140, key: 'F#m', style: 'trap', stems: true },
@@ -140,6 +140,35 @@ function wav(buf, seconds) {
   return out;
 }
 
+/** MP3 128 kbps čistě v JS (stejný kodér jako v adminu) – není potřeba ffmpeg. */
+function mp3(buf) {
+  const enc = new Mp3Encoder(1, SR, 128);
+  const pcm = new Int16Array(buf.length);
+  for (let i = 0; i < buf.length; i++) pcm[i] = Math.max(-1, Math.min(1, buf[i])) * 32767;
+  const out = [];
+  for (let i = 0; i < pcm.length; i += 1152 * 50) { const b = enc.encodeBuffer(pcm.subarray(i, i + 1152 * 50)); if (b.length) out.push(Buffer.from(b)); }
+  out.push(Buffer.from(enc.flush()));
+  return Buffer.concat(out);
+}
+
+/** Minimální ZIP bez komprese – není potřeba program zip. */
+function zip(files) {
+  const parts = [], central = [];
+  let offset = 0;
+  for (const [name, data] of files) {
+    const n = Buffer.from(name), crc = crc32(data);
+    const h = Buffer.alloc(30);
+    h.writeUInt32LE(0x04034b50, 0); h.writeUInt16LE(20, 4); h.writeUInt32LE(crc, 14); h.writeUInt32LE(data.length, 18); h.writeUInt32LE(data.length, 22); h.writeUInt16LE(n.length, 26);
+    const c = Buffer.alloc(46);
+    c.writeUInt32LE(0x02014b50, 0); c.writeUInt16LE(20, 4); c.writeUInt16LE(20, 6); c.writeUInt32LE(crc, 16); c.writeUInt32LE(data.length, 20); c.writeUInt32LE(data.length, 24); c.writeUInt16LE(n.length, 28); c.writeUInt32LE(offset, 42);
+    parts.push(h, n, data); central.push(c, n);
+    offset += 30 + n.length + data.length;
+  }
+  const cd = Buffer.concat(central), end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0); end.writeUInt16LE(files.length, 8); end.writeUInt16LE(files.length, 10); end.writeUInt32LE(cd.length, 12); end.writeUInt32LE(offset, 16);
+  return Buffer.concat([...parts, cd, end]);
+}
+
 let cookie = '';
 async function api(path, init = {}) {
   const res = await fetch(BASE + path, { ...init, headers: { 'x-admin': '1', cookie, ...(init.headers ?? {}) } });
@@ -159,27 +188,24 @@ async function multipart(beatId, kind, data, name) {
   await api('/api/admin/uploads/complete', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ beatId, kind, key, uploadId, parts, name }) });
 }
 
+if (!PASSWORD) { console.error('Chybí heslo: vytvoř .dev.vars (cp .dev.vars.example .dev.vars) nebo použij --password.'); process.exit(1); }
+try { await fetch(BASE + '/api/health'); } catch { console.error(`Web na ${BASE} neběží. Nejdřív v jiném terminálu spusť: npm run preview`); process.exit(1); }
 await api('/api/admin/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ password: PASSWORD }) });
 const existing = new Set((await api('/api/admin/beats')).beats.map((b) => b.title));
 
 for (const [idx, beat] of BEATS.entries()) {
   if (existing.has(beat.title)) { console.log(`= ${beat.title} (už existuje)`); continue; }
   const s = synth(beat, idx);
-  const base = join(CACHE, `demo-${idx}`);
-  writeFileSync(`${base}.wav`, wav(s.mix));
-  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', `${base}.wav`, '-codec:a', 'libmp3lame', '-b:a', '128k', `${base}.mp3`]);
   const peaks = computePeaks([s.mix]);
   const { beat: created } = await api('/api/admin/beats', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ title: beat.title, bpm: beat.bpm, key: beat.key, genre: beat.genre, duration: s.duration, peaks: peaksToBase64(peaks), seed: seedFromPeaks(peaks), sortOrder: 100 + idx }),
   });
-  await api(`/api/admin/files?beatId=${created.id}&kind=preview`, { method: 'PUT', body: readFileSync(`${base}.mp3`) });
-  await multipart(created.id, 'wav', readFileSync(`${base}.wav`), `${beat.title}.wav`);
+  await api(`/api/admin/files?beatId=${created.id}&kind=preview`, { method: 'PUT', body: mp3(s.mix) });
+  await multipart(created.id, 'wav', wav(s.mix), `${beat.title}.wav`);
   if (beat.stems) {
-    for (const [n, b] of [['drums', s.drums], ['bass', s.bass], ['melody', s.mel]]) writeFileSync(join(CACHE, `${n}.wav`), wav(b, 20));
-    if (existsSync(`${base}.zip`)) execFileSync('rm', [`${base}.zip`]);
-    execFileSync('zip', ['-j', '-q', `${base}.zip`, join(CACHE, 'drums.wav'), join(CACHE, 'bass.wav'), join(CACHE, 'melody.wav')]);
-    await multipart(created.id, 'stems', readFileSync(`${base}.zip`), `${beat.title} (stems).zip`);
+    const stems = zip([['drums.wav', wav(s.drums, 20)], ['bass.wav', wav(s.bass, 20)], ['melody.wav', wav(s.mel, 20)]]);
+    await multipart(created.id, 'stems', stems, `${beat.title} (stems).zip`);
   }
   await api(`/api/admin/beats/${created.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status: 'active' }) });
   console.log(`+ ${beat.title} — ${beat.bpm} BPM ${beat.key} (${s.duration.toFixed(0)} s)`);

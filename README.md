@@ -27,7 +27,7 @@ npm run db:local
 npm run preview
 ```
 
-Web běží na <http://localhost:8787>. V druhém terminálu ho naplníš ukázkovými beaty:
+Web běží na <http://localhost:8787>. Katalog je zpočátku **prázdný** – ukázkové beaty nejsou v repozitáři, vygeneruje je až tenhle příkaz (v druhém terminálu, web musí běžet):
 
 ```bash
 npm run seed:demo
