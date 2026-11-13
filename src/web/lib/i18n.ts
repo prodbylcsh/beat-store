@@ -129,6 +129,7 @@ const cs = {
   footer: { claim: 'Beaty lisované ze zvuku.', terms: 'Obchodní podmínky', privacy: 'Soukromí', contact: 'Kontakt', top: 'Nahoru', made: 'Navrženo a postaveno pro poslech nahlas.' },
   notFound: { title: 'Tahle drážka je prázdná.', text: 'Stránka neexistuje nebo ji někdo přehrál.', back: 'Zpět do katalogu' },
   dock: { license: 'Licence' },
+  crate: { drag: 'táhni', keys: 'listuj', crate: 'Bedna', list: 'Seznam', sticker: 'nové beaty každý týden' },
 };
 
 type Dict = typeof cs;
@@ -248,6 +249,7 @@ const en: Dict = {
   footer: { claim: 'Beats pressed from sound.', terms: 'Terms of sale', privacy: 'Privacy', contact: 'Contact', top: 'Top', made: 'Designed and built to be played loud.' },
   notFound: { title: 'This groove is empty.', text: 'The page does not exist, or someone played it out.', back: 'Back to the catalog' },
   dock: { license: 'License' },
+  crate: { drag: 'drag', keys: 'browse', crate: 'Crate', list: 'List', sticker: 'new beats every week' },
 };
 
 const dicts = { cs, en };

@@ -6,6 +6,7 @@ import type { ServiceId } from '../../shared/types';
 import { api } from '../lib/api';
 import { lang, t } from '../lib/i18n';
 import { vReveal } from '../lib/reveal';
+import { vMagnet, vTilt } from '../lib/tilt';
 import { currency, servicePayments } from '../lib/store';
 
 const f = reactive({
@@ -46,11 +47,11 @@ async function submit() {
   <div class="svc wrap">
     <header class="top">
       <p class="mono eyebrow">{{ t.svc.eyebrow }}</p>
-      <h1 class="display title"><span>{{ t.svc.title1 }}</span><span>{{ t.svc.title2 }}</span></h1>
+      <h1 class="display title"><span>{{ t.svc.title1 }}</span><span class="boil-lg">{{ t.svc.title2 }}</span></h1>
       <p class="sub">{{ t.svc.sub }}</p>
     </header>
 
-    <form class="console" @submit.prevent="submit">
+    <form v-tilt="2" class="console glass" @submit.prevent="submit">
       <section class="panel pick">
         <h2 class="mono"><span>1</span>{{ t.svc.pick }}</h2>
         <div class="services" role="radiogroup">
@@ -100,7 +101,7 @@ async function submit() {
           <label class="hp" aria-hidden="true">Website<input v-model="f.website" tabindex="-1" autocomplete="off" /></label>
           <label class="consent wide"><input v-model="f.consent" type="checkbox" required /><span>{{ t.svc.consent }} (<RouterLink to="/podminky">↗</RouterLink>)</span></label>
           <p v-if="error" class="error wide" role="alert">{{ t.svc.err }}</p>
-          <button class="btn wide send" :disabled="busy">{{ busy ? t.svc.sending : servicePayments ? t.svc.sendPay : t.svc.send }} — {{ money(total) }} <span class="arr">→</span></button>
+          <button v-magnet="0.12" class="btn wide send" :disabled="busy">{{ busy ? t.svc.sending : servicePayments ? t.svc.sendPay : t.svc.send }} — {{ money(total) }} <span class="arr">→</span></button>
         </div>
       </section>
     </form>
@@ -126,7 +127,8 @@ async function submit() {
 @keyframes rise { from { transform: translateY(40%); opacity: 0; } }
 .sub { max-width: 46ch; font-size: clamp(16px, 1.4vw, 20px); color: var(--ink-2); }
 
-.console { display: grid; grid-template-columns: 1.5fr 1fr 0.9fr; border: 1px solid var(--line); border-radius: 22px; overflow: hidden; background: color-mix(in srgb, var(--paper-2) 55%, transparent); }
+.console { display: grid; grid-template-columns: 1.5fr 1fr 0.9fr; border-radius: 26px; }
+.lcd { border-radius: 0 26px 0 0; }
 .panel { padding: clamp(18px, 2.2vw, 30px); min-width: 0; }
 .panel + .panel { border-left: 1px solid var(--line); }
 .brief { grid-column: 1 / -1; border-left: 0 !important; border-top: 1px solid var(--line); }

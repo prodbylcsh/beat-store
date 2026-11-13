@@ -2,6 +2,7 @@
 import { onMounted, ref, watch } from 'vue';
 import { beatPalette } from '../../shared/music';
 import type { Beat } from '../../shared/types';
+import { artVersion } from '../lib/disc-art';
 import { paintCover } from '../lib/groove';
 
 const props = defineProps<{ beat: Beat }>();
@@ -9,7 +10,7 @@ const canvas = ref<HTMLCanvasElement | null>(null);
 const ok = ref(true);
 const paint = () => { if (canvas.value) ok.value = paintCover(canvas.value, props.beat); };
 onMounted(paint);
-watch(() => props.beat.id, paint);
+watch([() => props.beat.id, () => props.beat.key, () => props.beat.title, artVersion], paint);
 </script>
 
 <template>

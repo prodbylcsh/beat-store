@@ -4,16 +4,21 @@ import { BRAND } from '../../shared/brand';
 import { keyLabel } from '../../shared/music';
 import BeatRow from '../components/BeatRow.vue';
 import ControlDeck from '../components/ControlDeck.vue';
+import CrateCarousel from '../components/CrateCarousel.vue';
+import DoodleMark from '../components/DoodleMark.vue';
+import SpinSticker from '../components/SpinSticker.vue';
 import DiscSlot from '../components/DiscSlot.vue';
 import FaqList from '../components/FaqList.vue';
 import LicenseCards from '../components/LicenseCards.vue';
 import { lang, t } from '../lib/i18n';
 import { meter, player } from '../lib/player';
 import { vReveal } from '../lib/reveal';
+import { vMagnet, vTilt } from '../lib/tilt';
 import { stageBeat } from '../lib/stage';
 import { beats, filtered, genres, hasFilters, loadCatalog, loadError, loaded, resetFilters } from '../lib/store';
 
 const title = ref<HTMLElement | null>(null);
+const view = ref<'crate' | 'list'>('crate');
 const onDeck = computed(() => stageBeat.value ?? player.current ?? beats.value[0] ?? null);
 const marquee = computed(() => [...(genres.value.length ? genres.value : ['Trap', 'Drill', 'Boom Bap']), BRAND.credit, 'WAV', 'STEMS', 'EXCLUSIVE', 'Mix & Master']);
 
@@ -38,18 +43,21 @@ onUnmounted(() => cancelAnimationFrame(raf));
           <span class="ln"><span>{{ t.hero.l2 }}</span></span>
           <span class="ln"><span>{{ t.hero.l3 }}<i class="dot" aria-hidden="true" /></span></span>
         </h1>
+        <DoodleMark kind="underline" class="scribble" />
         <div class="lead">
           <p>{{ t.hero.sub }}</p>
           <div class="cta">
-            <a href="#beats" class="btn">{{ t.hero.cta }} <span class="arr">↓</span></a>
-            <RouterLink to="/mix-master" class="btn ghost">{{ t.hero.cta2 }}</RouterLink>
+            <a v-magnet href="#beats" class="btn">{{ t.hero.cta }} <span class="arr">↓</span></a>
+            <RouterLink v-magnet to="/mix-master" class="btn ghost">{{ t.hero.cta2 }}</RouterLink>
           </div>
         </div>
       </div>
 
       <div class="deckzone">
         <DiscSlot :priority="3" :tilt="0.8" class="hero-disc" />
-        <div v-if="onDeck" class="ondeck mono">
+        <SpinSticker class="hero-sticker" :text="t.crate.sticker" center="✦" />
+        <DoodleMark kind="arrow" class="hero-arrow" />
+        <div v-if="onDeck" v-tilt="10" class="ondeck mono glass">
           <span class="dim">{{ player.playing ? t.status.playing : 'On deck' }}</span>
           <strong>{{ onDeck.title }}</strong>
           <span>{{ onDeck.bpm }} BPM · {{ keyLabel(onDeck.key, lang) }}</span>
@@ -77,7 +85,15 @@ onUnmounted(() => cancelAnimationFrame(raf));
         <p class="dim sub">{{ t.deck.sub }}</p>
       </div>
       <ControlDeck v-if="beats.length" v-reveal />
-      <ul v-if="filtered.length" class="rows">
+      <div v-if="beats.length" class="viewbar">
+        <DoodleMark kind="squiggle" class="vb-doodle" />
+        <div class="seg mono" role="group">
+          <button :aria-pressed="view === 'crate'" @click="view = 'crate'">◉ {{ t.crate.crate }}</button>
+          <button :aria-pressed="view === 'list'" @click="view = 'list'">☰ {{ t.crate.list }}</button>
+        </div>
+      </div>
+      <CrateCarousel v-if="filtered.length && view === 'crate'" :beats="filtered" />
+      <ul v-else-if="filtered.length" class="rows">
         <BeatRow v-for="(b, i) in filtered" :key="b.id" :beat="b" :index="i" />
       </ul>
       <div v-else-if="loaded" class="empty">
@@ -101,15 +117,15 @@ onUnmounted(() => cancelAnimationFrame(raf));
         </div>
         <p class="dim sub">{{ t.lic.sub }}</p>
       </div>
-      <LicenseCards v-reveal />
+      <LicenseCards v-reveal tilt />
       <p class="more"><RouterLink to="/licence" class="btn ghost">{{ t.lic.read }} <span class="arr">→</span></RouterLink></p>
     </section>
 
     <section class="section wrap svc">
-      <RouterLink to="/mix-master" class="svc-card" data-cursor="open">
+      <RouterLink v-tilt="4" to="/mix-master" class="svc-card tex-paper" data-cursor="open">
         <div>
           <p class="mono eyebrow">03 — {{ t.svc.eyebrow }}</p>
-          <h2 class="display big">{{ t.svc.title1 }}<br />{{ t.svc.title2 }}</h2>
+          <h2 class="display big">{{ t.svc.title1 }}<br /><span class="boil-lg">{{ t.svc.title2 }}</span></h2>
         </div>
         <div class="faders" aria-hidden="true"><span v-for="n in 9" :key="n" :style="{ '--v': [62, 38, 80, 55, 71, 30, 66, 48, 76][n - 1] + '%' }"><i /></span></div>
         <p class="svc-sub">{{ t.svc.sub }}<span class="btn small">{{ t.nav.services }} <span class="arr">→</span></span></p>
@@ -140,9 +156,17 @@ onUnmounted(() => cancelAnimationFrame(raf));
 .cta { display: flex; gap: 10px; flex-wrap: wrap; }
 @keyframes in { from { opacity: 0; transform: translateY(16px); } }
 
-.deckzone { position: absolute; right: -3.5vw; top: clamp(84px, 11vh, 130px); width: min(54vw, 88vh); z-index: 2; pointer-events: none; animation: in 1.2s 0.3s var(--ease) both; }
+.deckzone { position: absolute; right: -3.5vw; top: clamp(84px, 11vh, 130px); width: min(50vw, 80vh); pointer-events: none; }
 .hero-disc { width: 100%; pointer-events: auto; }
-.ondeck { position: absolute; right: 9%; top: 7%; display: grid; gap: 3px; padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, var(--paper) 80%, transparent); backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px var(--line); z-index: 50; }
+.ondeck { position: absolute; right: 9%; top: 7%; display: grid; gap: 3px; padding: 14px 18px; border-radius: 18px; z-index: 50; pointer-events: auto; }
+.hero-sticker { position: absolute; left: -4%; top: 14%; z-index: 50; pointer-events: auto; }
+.hero-arrow { position: absolute; right: 31%; top: 9%; width: 86px; height: 56px; color: var(--k); z-index: 50; transform: scaleX(-1) rotate(8deg); }
+.scribble { position: relative; z-index: 47; display: block; width: min(34vw, 460px); height: 26px; margin-top: 4px; color: var(--k); }
+.viewbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 26px 0 6px; }
+.vb-doodle { width: 150px; height: 22px; color: var(--k); }
+.seg { display: inline-flex; padding: 3px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); }
+.seg button { padding: 7px 14px; border-radius: 999px; color: var(--ink-2); transition: background-color 0.25s, color 0.25s; }
+.seg button[aria-pressed='true'] { background: var(--ink); color: var(--paper); }
 .ondeck strong { font-family: var(--sans); font-size: 17px; font-weight: 750; font-variation-settings: 'wdth' 114; text-transform: none; letter-spacing: -0.01em; }
 .hints { position: absolute; right: 9%; bottom: 8%; display: flex; gap: 18px; z-index: 50; white-space: nowrap; }
 
@@ -183,6 +207,9 @@ onUnmounted(() => cancelAnimationFrame(raf));
   .hints { right: 50%; transform: translateX(50%); bottom: 2%; gap: 12px; }
   .hints span:last-child { display: none; }
   .ondeck { right: 0; top: 2%; }
+  .hero-sticker { left: 0; top: 4%; scale: 0.7; transform-origin: left top; }
+  .hero-arrow { display: none; }
+  .scribble { width: 60vw; }
   .stats { margin-top: 12px; }
   .svc-card { grid-template-columns: 1fr; }
   .faders { justify-self: start; height: 130px; }

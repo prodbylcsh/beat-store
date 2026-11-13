@@ -5,6 +5,7 @@ import { LICENSE_NAMES } from '../../shared/licenses';
 import type { OrderView } from '../../shared/types';
 import { ApiError, api } from '../lib/api';
 import { lang, t } from '../lib/i18n';
+import { vTilt } from '../lib/tilt';
 
 const props = defineProps<{ token: string }>();
 const view = ref<OrderView | null>(null);
@@ -53,13 +54,13 @@ const until = computed(() =>
       <h1 class="display">{{ t.order.readyTitle }}</h1>
       <p class="lead"><strong>{{ view.beatTitle }}</strong> — {{ LICENSE_NAMES[view.license!] }}</p>
       <div class="grid">
-        <div class="card">
+        <div v-tilt="5" class="card glass">
           <h2 class="mono">{{ t.order.files }}</h2>
           <a v-for="f in view.files" :key="f.kind" class="file" :href="`${base}/download/${f.kind}`" download>
             <span class="mono ext">{{ f.kind === 'wav' ? 'WAV' : 'ZIP' }}</span><span class="fname">{{ f.name }}</span><span class="btn small">{{ t.order.download }} ↓</span>
           </a>
         </div>
-        <div class="card">
+        <div v-tilt="5" class="card glass">
           <h2 class="mono">{{ t.order.license }}</h2>
           <a class="file" :href="`${base}/license?lang=${lang}`" target="_blank" rel="noopener">
             <span class="mono ext">PDF</span><span class="fname">{{ LICENSE_NAMES[view.license!] }} — {{ view.beatTitle }}</span><span class="btn small">{{ t.order.open }} ↗</span>
@@ -94,7 +95,7 @@ h1 { font-size: clamp(48px, 10vw, 170px); margin-left: -0.04em; }
 .lead a { text-decoration: underline; }
 .test { margin-left: 12px; padding: 2px 8px; border-radius: 999px; background: #ffcc00; color: #000; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; margin-top: 18px; }
-.card { padding: 22px; border-radius: 18px; box-shadow: inset 0 0 0 1px var(--line); display: grid; gap: 12px; align-content: start; }
+.card { padding: 22px; border-radius: 22px; display: grid; gap: 12px; align-content: start; }
 .card h2 { color: var(--ink-2); }
 .file { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 12px; border-radius: 12px; background: var(--line-2); transition: background-color 0.2s; }
 .file:hover { background: color-mix(in srgb, var(--k) 20%, transparent); }

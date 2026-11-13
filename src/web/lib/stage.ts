@@ -22,7 +22,15 @@ export const stage = reactive({
   /** slot, ve kterém deska právě je */
   activePriority: -1,
   available: true,
+  /** jednorázově: odkud má deska vyletět (střed, průměr) a s jakým beatem */
+  launch: null as null | { cx: number; cy: number; size: number; beat: Beat },
 });
+
+/** poloha kurzoru ve viewportu – čte ji jeviště, sklo i efekty */
+export const pointer = { x: -9999, y: -9999, active: false };
+if (typeof window !== 'undefined') {
+  window.addEventListener('pointermove', (e) => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = e.pointerType === 'mouse'; }, { passive: true });
+}
 export const stageBeat = shallowRef<Beat | null>(null);
 
 const io = typeof IntersectionObserver !== 'undefined'
@@ -49,3 +57,6 @@ export function activeSlot(): Slot | null {
   for (const s of slots) if (s.visible && (!best || s.priority > best.priority)) best = s;
   return best;
 }
+
+/** kde je právě vykreslená hlavní deska (pro kreslené efekty) */
+export const discRect = { cx: 0, cy: 0, size: 0 };

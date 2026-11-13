@@ -12,6 +12,7 @@ import { api } from '../lib/api';
 import { lang, t } from '../lib/i18n';
 import { player, toggle } from '../lib/player';
 import { beats, currency, loadCatalog } from '../lib/store';
+import { vMagnet } from '../lib/tilt';
 
 const props = defineProps<{ slug: string }>();
 const beat = ref<Beat | null>(null);
@@ -72,7 +73,7 @@ async function share() {
         <li><button class="mono" @click="share">{{ copied ? t.beat.copied : t.beat.share }} ⧉</button></li>
       </ul>
 
-      <div class="listen">
+      <div class="listen glass">
         <button class="pp" :aria-label="playing ? t.row.pause : t.row.play" @click="toggle(beat, beats)">
           <svg v-if="playing" viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
           <svg v-else viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z" /></svg>
@@ -85,7 +86,7 @@ async function share() {
         <LicenseCards v-model="license" :prices="beat.prices" :disabled="disabled" compact />
         <p v-if="!beat.hasStems" class="mono dim note">{{ t.beat.noStems }}</p>
         <div class="buy">
-          <button class="btn buy-btn" @click="paying = true">
+          <button v-magnet="0.18" class="btn buy-btn" @click="paying = true">
             {{ t.beat.buy }} — {{ price }}<small v-if="LICENSE_TERMS[license].subscription">&nbsp;{{ t.beat.perYear }}</small> <span class="arr">→</span>
           </button>
           <RouterLink :to="{ path: '/licence', hash: `#${license}` }" class="mono link">{{ t.beat.fullText }}: {{ LICENSE_NAMES[license] }} ↗</RouterLink>
@@ -120,7 +121,7 @@ async function share() {
 .meta li { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 13px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); }
 .meta b { font-size: 13px; }
 .meta i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
-.listen { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; margin: 28px 0 36px; padding: 14px 18px 14px 14px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); }
+.listen { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; margin: 28px 0 36px; padding: 14px 18px 14px 14px; border-radius: 999px; }
 .pp { width: 64px; height: 64px; border-radius: 50%; background: var(--ink); color: var(--paper); display: grid; place-items: center; transition: background-color 0.25s, transform 0.3s var(--ease), color 0.25s; }
 .pp:hover { background: var(--c); color: #0e0e0c; transform: scale(1.06); }
 .pp svg { width: 24px; height: 24px; fill: currentColor; }

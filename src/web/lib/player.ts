@@ -1,5 +1,5 @@
 import { reactive, watch } from 'vue';
-import { beatPalette } from '../../shared/music';
+import { beatPalette, rgbCss } from '../../shared/music';
 import type { Beat } from '../../shared/types';
 
 /** Přehrávač: jeden <audio> pro celý web + analyzér, který rozhýbává desku a typografii. */
@@ -175,4 +175,5 @@ watch(() => player.current, (b) => {
   const s = document.documentElement.style;
   s.setProperty('--k', p.css);
   s.setProperty('--k-soft', p.cssSoft);
+  s.setProperty('--k2', rgbCss(p.alt));
 });

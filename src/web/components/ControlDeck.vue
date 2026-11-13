@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { NOTE_NAMES, keyHue } from '../../shared/music';
 import { t } from '../lib/i18n';
+import { vTilt } from '../lib/tilt';
 import { blip } from '../lib/player';
 import { bpmRange, filtered, filters, genres, hasFilters, resetFilters } from '../lib/store';
 
@@ -37,11 +38,11 @@ function toggleGenre(g: string) {
 </script>
 
 <template>
-  <div class="deck">
+  <div v-tilt="3" class="deck glass">
     <section class="mod tempo">
       <header class="mono"><span>A</span>{{ t.deck.tempo }}</header>
       <div class="tempo-row">
-        <button class="pad" :class="{ hit }" :aria-label="t.deck.tapHint" @pointerdown.prevent="tap" @keydown.enter.prevent="tap" @keydown.space.prevent="tap">
+        <button class="pad tex-rubber" :class="{ hit }" :aria-label="t.deck.tapHint" @pointerdown.prevent="tap" @keydown.enter.prevent="tap" @keydown.space.prevent="tap">
           <span class="mono">{{ t.deck.tap }}</span>
         </button>
         <div class="read">
@@ -104,7 +105,7 @@ function toggleGenre(g: string) {
 </template>
 
 <style scoped>
-.deck { display: grid; grid-template-columns: 1.05fr 1.25fr 1.2fr 1fr; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; background: color-mix(in srgb, var(--paper-2) 55%, transparent); transition: border-color 0.7s, background-color 0.7s; }
+.deck { display: grid; grid-template-columns: 1.05fr 1.25fr 1.2fr 1fr; border-radius: 24px; }
 .mod { padding: 18px 20px 20px; display: grid; gap: 14px; align-content: start; min-width: 0; }
 .mod + .mod { border-left: 1px solid var(--line); }
 header { display: flex; align-items: center; gap: 10px; color: var(--ink-2); min-height: 24px; }
@@ -112,7 +113,7 @@ header > span:first-child { display: grid; place-items: center; width: 18px; hei
 
 .tempo-row { display: flex; align-items: center; gap: 14px; }
 .pad {
-  width: 74px; height: 74px; flex: none; border-radius: 14px; background: var(--ink); color: var(--paper); position: relative;
+  width: 74px; height: 74px; flex: none; border-radius: 14px; position: relative;
   box-shadow: 0 5px 0 color-mix(in srgb, var(--ink) 55%, var(--paper)); transition: transform 0.08s, box-shadow 0.08s; touch-action: manipulation;
 }
 .pad:active { transform: translateY(4px); box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 55%, var(--paper)); }
@@ -127,7 +128,7 @@ header > span:first-child { display: grid; place-items: center; width: 18px; hei
 .fader { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; cursor: pointer; }
 .fader::-webkit-slider-runnable-track { height: 2px; background: var(--line); }
 .fader::-moz-range-track { height: 2px; background: var(--line); }
-.fader::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 22px; margin-top: -10px; border-radius: 3px; background: var(--ink); }
+.fader::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 24px; margin-top: -11px; border-radius: 3px; background: linear-gradient(180deg, #d9d6cf, #8f8c85 48%, #c9c6be 52%, #77746e); box-shadow: 0 2px 4px rgb(0 0 0 / 0.4), inset 0 0 0 1px rgb(0 0 0 / 0.35); }
 .fader::-moz-range-thumb { width: 12px; height: 22px; border: 0; border-radius: 3px; background: var(--ink); }
 .fader.off::-webkit-slider-thumb { background: var(--ink-3); }
 .fader.off::-moz-range-thumb { background: var(--ink-3); }
@@ -136,11 +137,11 @@ header > span:first-child { display: grid; place-items: center; width: 18px; hei
 .seg button { padding: 3px 9px; border-radius: 999px; font-size: 10px; color: var(--ink-2); }
 .seg button[aria-pressed='true'] { background: var(--ink); color: var(--paper); }
 .piano { position: relative; display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; height: 104px; }
-.w { position: relative; border-radius: 4px 4px 8px 8px; background: var(--paper); box-shadow: inset 0 0 0 1px var(--line); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; transition: background-color 0.15s, transform 0.1s, color 0.15s; transform-origin: top; }
+.w { position: relative; border-radius: 4px 4px 8px 8px; background: linear-gradient(180deg, color-mix(in srgb, var(--glass-hi) 70%, transparent), color-mix(in srgb, var(--glass-hi) 95%, transparent)); box-shadow: inset 0 0 0 1px var(--line), inset 0 -6px 8px -6px rgb(0 0 0 / 0.25); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; transition: background-color 0.15s, transform 0.1s steps(2), color 0.15s; transform-origin: top; }
 .w::before { content: ''; position: absolute; left: 22%; right: 22%; top: 8px; height: 3px; border-radius: 3px; background: var(--h); opacity: 0.85; }
 .w span { font-size: 10px; color: var(--ink-2); }
 .w:hover { background: color-mix(in srgb, var(--h) 22%, var(--paper)); }
-.w:active { transform: scaleY(0.97); }
+.w:active { transform: perspective(300px) rotateX(-9deg); }
 .w.on { background: var(--h); }
 .w.on span { color: #0e0e0c; }
 .w.on::before { background: #0e0e0c; }

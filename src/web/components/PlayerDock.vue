@@ -13,7 +13,7 @@ watchEffect(() => document.documentElement.style.setProperty('--dock-h', b.value
 
 <template>
   <Transition name="dock">
-    <aside v-if="b" class="dock" aria-label="Player">
+    <aside v-if="b" class="dock glass" aria-label="Player">
       <div class="disc">
         <DiscSlot :priority="1" :beat="b" :interactive="false" class="mini" />
         <span v-if="stage.activePriority > 1" class="ghost" aria-hidden="true" />
@@ -40,11 +40,9 @@ watchEffect(() => document.documentElement.style.setProperty('--dock-h', b.value
 
 <style scoped>
 .dock {
-  position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 40; height: 68px; padding: 0 16px 0 10px;
+  position: fixed !important; left: 12px; right: 12px; bottom: 12px; z-index: 40; height: 68px; padding: 0 16px 0 10px;
   display: grid; grid-template-columns: auto minmax(120px, 220px) auto auto 1fr auto auto; align-items: center; gap: 16px;
-  background: color-mix(in srgb, var(--paper-2) 86%, transparent); backdrop-filter: blur(18px) saturate(1.4);
-  border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line), 0 18px 50px -20px rgb(0 0 0 / 0.5);
-  transition: background-color 0.7s var(--ease);
+  border-radius: 999px;
 }
 .disc { position: relative; width: 50px; height: 50px; }
 .mini { width: 50px; height: 50px; }

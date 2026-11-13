@@ -1,6 +1,6 @@
 import type { Env } from '../types';
 import { sha256Hex, verifyLemonSignature } from '../lib/crypto';
-import { json, notify } from '../lib/http';
+import { isMockPayments, json, notify } from '../lib/http';
 import { cancelSubscription } from '../lib/lemon';
 import { processLemonEvent, type LemonEvent, type ProcessResult } from '../lib/orders';
 
@@ -27,7 +27,15 @@ export async function handleVerifiedEvent(env: Env, rawBody: ArrayBuffer | strin
     .run();
 
   const after = async () => {
-    for (const sid of result.cancelSubscriptions ?? []) await cancelSubscription(env, sid);
+    for (const sid of result.cancelSubscriptions ?? []) {
+      // Po exkluzivním prodeji se lease nesmí obnovit. Když zrušení selže, označ objednávku k ručnímu zásahu.
+      if (isMockPayments(env) || (await cancelSubscription(env, sid))) continue;
+      await env.DB
+        .prepare(`UPDATE orders SET needs_review = 1, note = TRIM(note || ' ' || ?), updated_at = CURRENT_TIMESTAMP WHERE lemon_subscription_id = ?`)
+        .bind('Beat byl exkluzivně prodán, ale automatické obnovení se nepodařilo zrušit – zruš předplatné ručně v Lemon Squeezy.', sid)
+        .run();
+      await notify(env, `⚠️ Nepodařilo se zrušit obnovení lease (předplatné ${sid}) po exkluzivním prodeji – zruš ho ručně.`);
+    }
     if (result.notify) await notify(env, result.notify);
   };
   if (ctx) ctx.waitUntil(after());

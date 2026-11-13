@@ -5,9 +5,10 @@ import { LICENSE_IDS, type LicenseId } from '../../shared/types';
 import { lang, t } from '../lib/i18n';
 import { licenseDesc, licenseRows, licenseTag } from '../lib/license-view';
 import { currency } from '../lib/store';
+import { vTilt } from '../lib/tilt';
 
 /** Bez `modelValue` = přehled (úvodní stránka), s ním = výběr licence na detailu beatu. */
-const props = defineProps<{ modelValue?: LicenseId | null; prices?: Record<LicenseId, number>; disabled?: LicenseId[]; compact?: boolean }>();
+const props = defineProps<{ modelValue?: LicenseId | null; prices?: Record<LicenseId, number>; disabled?: LicenseId[]; compact?: boolean; tilt?: boolean }>();
 const emit = defineEmits<{ 'update:modelValue': [LicenseId] }>();
 const selectable = () => props.modelValue !== undefined;
 const price = (id: LicenseId) => props.prices?.[id] ?? LICENSE_TERMS[id].defaultPrice;
@@ -16,7 +17,7 @@ const price = (id: LicenseId) => props.prices?.[id] ?? LICENSE_TERMS[id].default
 <template>
   <div class="cards" :class="{ selectable: selectable(), compact }" :role="selectable() ? 'radiogroup' : undefined">
     <component
-      :is="selectable() ? 'button' : 'article'" v-for="id in LICENSE_IDS" :key="id" class="card" :class="[id, { on: modelValue === id }]"
+      :is="selectable() ? 'button' : 'article'" v-for="id in LICENSE_IDS" :key="id" v-tilt="compact ? 3 : 9" class="card glass" :class="[id, { on: modelValue === id }]"
       :role="selectable() ? 'radio' : undefined" :aria-checked="selectable() ? modelValue === id : undefined"
       :disabled="selectable() && disabled?.includes(id) ? true : undefined" @click="selectable() && emit('update:modelValue', id)"
     >
@@ -46,17 +47,13 @@ const price = (id: LicenseId) => props.prices?.[id] ?? LICENSE_TERMS[id].default
 .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .card {
   position: relative; text-align: left; padding: 22px 22px 24px; border-radius: 16px; display: grid; gap: 12px; align-content: start;
-  background: color-mix(in srgb, var(--paper-2) 60%, transparent); box-shadow: inset 0 0 0 1px var(--line);
-  transition: transform 0.5s var(--ease), box-shadow 0.3s, background-color 0.4s, color 0.4s;
+  transition: transform 0.7s var(--ease), box-shadow 0.3s, background 0.6s, color 0.4s;
 }
-.card.exclusive { background: var(--ink); color: var(--paper); box-shadow: none; }
+.card.exclusive { background: linear-gradient(150deg, color-mix(in srgb, var(--ink) 94%, transparent), color-mix(in srgb, var(--ink) 80%, var(--k))); color: var(--paper); }
 .card.exclusive .dim, .card.exclusive dt { color: color-mix(in srgb, var(--paper) 62%, transparent); }
 .card.exclusive dl div { border-color: color-mix(in srgb, var(--paper) 18%, transparent); }
 /* výřezy jako na vstupence */
-.notch { position: absolute; top: 148px; width: 18px; height: 18px; border-radius: 50%; background: var(--paper); box-shadow: inset 0 0 0 1px var(--line); transition: background-color 0.7s var(--ease); }
-.notch.l { left: -9px; clip-path: inset(0 0 0 50%); }
-.notch.r { right: -9px; clip-path: inset(0 50% 0 0); }
-.card.exclusive .notch { box-shadow: none; }
+.notch { display: none; }
 .compact .notch { display: none; }
 header { display: flex; justify-content: space-between; gap: 8px; align-items: center; min-height: 22px; }
 .tag { opacity: 0.7; }
@@ -72,9 +69,9 @@ dt { color: var(--ink-2); font-size: 10px; align-self: center; }
 dd { margin: 0; text-align: right; font-weight: 550; }
 dd.strong { font-weight: 750; }
 .selectable .card { cursor: pointer; padding-right: 48px; }
-.selectable .card:hover { transform: translateY(-3px); }
-.selectable .card.on { box-shadow: inset 0 0 0 2px var(--k), 0 22px 50px -28px var(--k); transform: translateY(-3px); }
-.selectable .card[disabled] { opacity: 0.38; cursor: not-allowed; transform: none; }
+.selectable .card.on { box-shadow: inset 0 0 0 2px var(--k), inset 0 1px 0 rgb(255 255 255 / var(--glass-edge)), 0 26px 54px -26px var(--k); }
+.selectable .card[disabled] { opacity: 0.38; cursor: not-allowed; }
+h3, .price strong { transform: translateZ(26px); }
 .radio { position: absolute; top: 20px; right: 20px; width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px currentColor; opacity: 0.5; transition: opacity 0.2s; }
 .card.on .radio { opacity: 1; background: radial-gradient(circle, var(--k) 0 42%, transparent 46%); box-shadow: inset 0 0 0 1.5px var(--k); }
 .selectable header { padding-right: 0; }
